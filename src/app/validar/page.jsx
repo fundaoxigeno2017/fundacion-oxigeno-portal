@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ValidationSearch from '@/components/validation/ValidationSearch'
 import ValidationResult from '@/components/validation/ValidationResult'
 import PublicHeader from '@/components/PublicHeader'
 
-export default function ValidarPage() {
+// ✅ Componente interno que usa useSearchParams
+function ValidarPageContent() {
   const supabase = createClient()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -19,7 +20,6 @@ export default function ValidarPage() {
   const [error, setError] = useState(null)
   const [hasSearched, setHasSearched] = useState(!!searchParams.get('code'))
 
-  // Cargar configuración de la entidad (para mostrar nombre oficial, etc.)
   useEffect(() => {
     const loadSettings = async () => {
       const { data } = await supabase.from('entity_settings').select('name, nit').eq('id', 1).single()
@@ -28,14 +28,13 @@ export default function ValidarPage() {
     loadSettings()
   }, [supabase])
 
-  // Si hay un código en la URL, validar automáticamente al cargar
   useEffect(() => {
     if (searchParams.get('code')) {
       handleValidate(searchParams.get('code'))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleValidate = async (searchCode) => {
+  const handleValidate = async (searchCode) => {
     const cleanCode = searchCode.trim().toUpperCase()
     if (!cleanCode) return
 
@@ -49,7 +48,6 @@ export default function ValidarPage() {
     try {
       const { data, error: queryError } = await supabase
         .from('certificates')
-        // ✅ CAMBIO CLAVE: Quitamos el '!inner' para que no falle si la plantilla cambió de estado
         .select(`
           *,
           templates(cargo, name)
@@ -142,5 +140,22 @@ export default function ValidarPage() {
         <p className="mt-1">Istmina, Chocó - Colombia</p>
       </footer>
     </div>
+  )
+}
+
+// ✅ Componente principal que envuelve todo en Suspense
+export default function ValidarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <PublicHeader />
+        <main className="flex-1 flex flex-col items-center justify-center px-4">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mb-4"></div>
+          <p className="text-gray-600">Cargando validador...</p>
+        </main>
+      </div>
+    }>
+      <ValidarPageContent />
+    </Suspense>
   )
 }
