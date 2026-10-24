@@ -20,6 +20,44 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* ==========================================
+   ✅ CORRECCIÓN DE CONTRASTE EN FORMULARIOS
+   Fuerza texto oscuro en inputs/selects/textarea
+   independientemente del modo oscuro del sistema
+   ========================================== */
+input,
+select,
+textarea {
+  color: #0f172a !important; /* slate-900: texto oscuro y legible */
+  background-color: #ffffff !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400: placeholder en gris suave */
+}
+
+/* Opciones de los desplegables (select) */
+select option {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+/* Corrige el fondo amarillo y texto gris del autocompletado en Chrome/Edge */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f172a !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
