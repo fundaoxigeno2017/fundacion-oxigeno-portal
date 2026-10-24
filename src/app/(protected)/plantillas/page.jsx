@@ -17,15 +17,16 @@ export default function PlantillasPage() {
   const [cargo, setCargo] = useState('')
   const [name, setName] = useState('')
   const [content, setContent] = useState('')
+  const [pageSize, setPageSize] = useState('carta') // ✅ Nuevo estado para el tamaño de hoja
   const [changeLog, setChangeLog] = useState('')
   const [saving, setSaving] = useState(false)
 
-  // Placeholders disponibles
+  // Placeholders disponibles (actualizado con {{cargo}} y {{dia}})
   const placeholders = [
     '{{nombres}}', '{{tipoDocumento}}', '{{numeroDocumento}}',
-    '{{tipoContrato}}', '{{fechaInicio}}', '{{fechaFin}}',
+    '{{cargo}}', '{{tipoContrato}}', '{{fechaInicio}}', '{{fechaFin}}',
     '{{numeroContrato}}', '{{regional}}', '{{anio}}',
-    '{{modalidad}}', '{{ciudad}}', '{{mes}}', '{{anioExp}}',
+    '{{modalidad}}', '{{ciudad}}', '{{dia}}', '{{mes}}', '{{anioExp}}',
     '{{codigo}}', '{{nit}}'
   ]
 
@@ -59,6 +60,7 @@ export default function PlantillasPage() {
     setCargo('')
     setName('')
     setContent('')
+    setPageSize('carta') // ✅ Resetear a valor por defecto
     setChangeLog('')
     setShowModal(true)
   }
@@ -69,6 +71,7 @@ export default function PlantillasPage() {
     setCargo(template.cargo)
     setName(template.name)
     setContent(template.content)
+    setPageSize(template.page_size || 'carta') // ✅ Cargar tamaño existente o por defecto
     setChangeLog('')
     setShowModal(true)
   }
@@ -90,6 +93,7 @@ export default function PlantillasPage() {
             cargo: cargo,
             name: name,
             content: content,
+            page_size: pageSize, // ✅ Incluir tamaño de hoja
             version: editingTemplate.version + 1,
             is_current: true,
             parent_id: editingTemplate.id,
@@ -115,6 +119,7 @@ export default function PlantillasPage() {
             cargo: cargo,
             name: name,
             content: content,
+            page_size: pageSize, // ✅ Incluir tamaño de hoja
             version: 1,
             is_current: true
           }])
@@ -229,7 +234,7 @@ export default function PlantillasPage() {
           onClick={handleNewTemplate}
           className="px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors shadow-md flex items-center gap-2"
         >
-          <span></span> Nueva Plantilla
+          <span>📄</span> Nueva Plantilla
         </button>
       </div>
 
@@ -269,6 +274,7 @@ export default function PlantillasPage() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamaño</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versión</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -281,6 +287,13 @@ export default function PlantillasPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{template.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        template.page_size === 'oficio' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {template.page_size === 'oficio' ? '📜 Oficio' : '📄 Carta'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -305,7 +318,7 @@ export default function PlantillasPage() {
                           onClick={() => handleDeleteTemplate(template.id)}
                           className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs"
                         >
-                          ️ Eliminar
+                          🗑️ Eliminar
                         </button>
                       </div>
                     </td>
@@ -345,7 +358,24 @@ export default function PlantillasPage() {
                     disabled={!!editingTemplate}
                   />
                 </div>
+                
+                {/* ✅ SELECTOR DE TAMAÑO DE HOJA CORREGIDO */}
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tamaño de hoja del certificado</label>
+                  <select 
+                    value={pageSize} 
+                    onChange={(e) => setPageSize(e.target.value)} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900"
+                  >
+                    <option value="carta">Carta (21.59 x 27.94 cm) - Estándar</option>
+                    <option value="oficio">Oficio (21.59 x 33.02 cm) - Más espacio vertical</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Usa "Oficio" si la plantilla tiene muchas funciones y la firma suele quedar en una hoja aparte.
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nombre descriptivo *</label>
                   <input
                     type="text"
@@ -442,6 +472,11 @@ export default function PlantillasPage() {
                             {version.is_current && (
                               <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">ACTIVA</span>
                             )}
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              version.page_size === 'oficio' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {version.page_size === 'oficio' ? '📜 Oficio' : '📄 Carta'}
+                            </span>
                           </div>
                           <p className="text-sm text-gray-600 mb-1">
                             Creada: {new Date(version.created_at).toLocaleString('es-CO')}
